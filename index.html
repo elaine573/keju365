@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>登科录 · 隋唐宋元明清 · 金榜题名 · 错题本（累积版）</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: #2d2418;
+            background-image: radial-gradient(circle at 15% 30%, rgba(200, 170, 120, 0.2) 2%, transparent 2.5%),
+                              radial-gradient(circle at 85% 70%, rgba(160, 120, 70, 0.15) 1.5%, transparent 2%);
+            background-size: 42px 42px, 34px 34px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'STKaiti', '华文楷书', 'Georgia', 'Times New Roman', serif;
+            padding: 24px;
+            position: relative;
+        }
+        /* 错题本按钮（左上角） */
+        .wrongnote-btn {
+            position: fixed;
+            top: 20px;
+            left: 30px;
+            background: #b7512a;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: 0.2s;
+            z-index: 8000;
+        }
+        .wrongnote-btn:hover { background: #8e3c1c; transform: scale(1.02); }
+        .exam-wrapper { width: 100%; max-width: 1420px; position: relative; z-index: 1; }
+        .dynasty-screen {
+            background: #fff9ef;
+            background-image: linear-gradient(135deg, #fef7e8 0%, #fcf0df 100%);
+            border-radius: 64px 32px 64px 32px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), inset 0 1px 4px rgba(255, 245, 200, 0.9);
+            padding: 2rem 1.8rem 2rem;
+            border: 1px solid #cdad70;
+            position: relative;
+        }
+        .encyclopedia-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: #b7512a;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: 0.2s;
+        }
+        .encyclopedia-btn:hover { background: #8e3c1c; transform: scale(1.02); }
+        .dynasty-layout { display: flex; flex-wrap: wrap; gap: 2rem; justify-content: space-between; margin-top: 10px; }
+        .cards-area { flex: 2.5; min-width: 280px; }
+        .custom-area {
+            flex: 1.2; min-width: 280px;
+            background: rgba(245, 235, 210, 0.6);
+            border-radius: 48px 24px 48px 24px;
+            padding: 1.2rem 1.2rem 1.6rem;
+            border: 1px solid #e2c48b;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(2px);
+        }
+        .title-glow {
+            font-size: 2.8rem; letter-spacing: 6px; color: #8b3a1c;
+            text-shadow: 3px 3px 0 #ebd7a8; margin-bottom: 0.2rem;
+            font-weight: bold; text-align: center;
+        }
+        .subhead {
+            font-size: 0.9rem; color: #7a4a22; border-top: 1px solid #dcb672;
+            display: inline-block; padding-top: 6px; margin-bottom: 1.8rem;
+            text-align: center; width: 100%;
+        }
+        .dynasty-card-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 1rem 0 0.5rem;
+        }
+        .dynasty-card {
+            background: #fffbf0;
+            width: 100%;
+            max-width: 210px;
+            padding: 1.5rem 1rem 1.8rem;
+            border-radius: 48px 24px 48px 24px;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            border: 1px solid #caa65a;
+            box-shadow: 0 12px 18px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        .dynasty-card:hover {
+            transform: translateY(-12px); background: #fff9e6;
+            border-color: #b87a38; box-shadow: 0 22px 30px rgba(0, 0, 0, 0.28);
+        }
+        .dynasty-icon { font-size: 3.2rem; margin-bottom: 0.6rem; }
+        .dynasty-name { font-size: 1.8rem; font-weight: bold; color: #ac4e2c; letter-spacing: 4px; }
+        .dynasty-badge {
+            font-size: 0.75rem; background: #e7dbbc; display: inline-block;
+            padding: 4px 12px; border-radius: 40px; color: #6b3a1c; margin-top: 6px;
+        }
+        .dynasty-desc { font-size: 0.8rem; color: #5a3a22; margin-top: 1rem; line-height: 1.4; height: 3.2rem; overflow: hidden; }
+        .custom-title { font-size: 1.2rem; font-weight: bold; color: #ac4e2c; border-left: 5px solid #b7512a; padding-left: 12px; margin-bottom: 16px; }
+        .form-group { margin-bottom: 10px; }
+        .form-group label { font-size: 0.7rem; font-weight: bold; color: #6b3a1c; display: block; margin-bottom: 4px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 7px 10px; border-radius: 20px; border: 1px solid #dbb874;
+            background: #fffcf3; font-family: inherit; font-size: 0.8rem;
+        }
+        .option-row { display: flex; gap: 6px; margin-bottom: 6px; }
+        .add-quiz-btn {
+            background-color: #b7512a; color: white; border: none; padding: 10px;
+            border-radius: 40px; cursor: pointer; font-size: 0.85rem; width: 100%; margin-top: 8px;
+        }
+        .custom-list { margin-top: 15px; max-height: 150px; overflow-y: auto; border-top: 1px solid #e2bc7c; padding-top: 10px; }
+        .custom-item { background: #fffef2; border-radius: 15px; padding: 8px; margin-bottom: 8px; font-size: 0.7rem; border-left: 4px solid #b7512a; position: relative; }
+        .del-custom { position: absolute; right: 8px; top: 6px; background: none; border: none; color: #b32d00; cursor: pointer; }
+        .game-screen { display: none; }
+        .exam-main-layout { display: flex; gap: 28px; align-items: stretch; }
+        .exam-paper {
+            flex: 3; background: #fdf8ed; border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 0 0 4px #eeddae;
+            padding: 2rem; position: relative;
+        }
+        .examiner-area {
+            flex: 1; min-width: 240px; background: linear-gradient(145deg, #fff7e8, #fef0dd);
+            border-radius: 40px; padding: 20px; text-align: center; border: 1px solid #e2c48b;
+        }
+        .examiner-sprite-container {
+            width: 180px; height: 220px; margin: 0 auto; background: #fdfaf2;
+            border-radius: 20px; overflow: hidden; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+        #examiner-img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
+        .examiner-name { font-size: 1.2rem; font-weight: bold; color: #b5562a; margin: 12px 0; border-bottom: 2px solid #e2bc7c; display: inline-block; }
+        .examiner-bubble {
+            background: white; border-radius: 20px 20px 20px 5px; padding: 15px;
+            font-size: 0.9rem; color: #4a2a12; box-shadow: 0 4px 10px rgba(0,0,0,0.05); min-height: 80px;
+        }
+        .exam-header { text-align: center; border-bottom: 2px solid #bc7642; margin-bottom: 1.5rem; padding-bottom: 0.5rem; }
+        .info-bar-exam { display: flex; justify-content: space-between; background: #ebdfbf; padding: 10px 20px; border-radius: 40px; margin-bottom: 20px; font-weight: bold; font-size: 0.9rem; }
+        .question-box { background: #fffdf5; padding: 25px; border-radius: 15px; margin-bottom: 20px; font-size: 1.1rem; line-height: 1.6; border-left: 8px solid #b7512a; min-height: 120px; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .option-btn { background: #fffef7; border: 1px solid #cfa56a; padding: 15px; border-radius: 50px; cursor: pointer; font-family: inherit; transition: 0.2s; text-align: left; }
+        .option-btn:hover:not(:disabled) { background: #f1e3c6; transform: translateX(3px); }
+        .option-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        #feedback { margin-top: 20px; padding: 20px; border-radius: 15px; display: none; }
+        .correct-box { background: #eaf5e3; border-left: 8px solid #2f7d2f; }
+        .wrong-box { background: #fef0e8; border-left: 8px solid #c55738; }
+        .progress-container { width: 100%; height: 10px; background: #e1cfaa; border-radius: 10px; margin: 25px 0; }
+        #progress-bar { height: 100%; background: #b84a28; width: 0%; border-radius: 10px; transition: 0.4s; }
+        .flex-row { display: flex; justify-content: space-between; gap: 15px; margin-top: 15px; }
+        .next-btn, .restart-btn, .back-dynasty-btn { padding: 10px 25px; border-radius: 40px; cursor: pointer; border: none; font-family: inherit; font-weight: bold; }
+        .next-btn { background: #b7512a; color: white; }
+        .next-btn:disabled { background: #b78a6a; cursor: not-allowed; opacity: 0.6; }
+        .back-dynasty-btn { background: #8e6b3e; color: white; }
+        #victory-screen { display: none; text-align: center; padding: 50px 20px; background: #fffcf0; border-radius: 40px; }
+        .seal { width: 140px; height: 140px; border: 5px solid #c85a32; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; font-size: 1.8rem; font-weight: bold; color: #c85a32; transform: rotate(-15deg); }
+        
+        .level-card-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 7000;
+            font-family: 'STKaiti', '华文楷书', serif;
+        }
+        .level-card-content {
+            max-width: 550px;
+            width: 85%;
+            background: #fffef0;
+            border-radius: 56px 28px 56px 28px;
+            padding: 1.8rem 2rem;
+            border: 2px solid #e0ba78;
+            box-shadow: 0 25px 35px rgba(0, 0, 0, 0.4);
+            font-family: 'STKaiti', '华文楷书', serif;
+            color: #3a2a1a;
+        }
+        .level-card-content h3 {
+            font-size: 1.9rem;
+            color: #aa4a28;
+            border-left: 6px solid #b7512a;
+            padding-left: 16px;
+            margin-bottom: 18px;
+            font-weight: bold;
+        }
+        .level-card-content p {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: #2f2418;
+            margin: 16px 0;
+            background: #fffcf3;
+            padding: 12px 16px;
+            border-radius: 28px;
+        }
+        .card-skip-btn {
+            background: #b7512a;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 18px;
+            float: right;
+            font-family: inherit;
+            transition: 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .card-skip-btn:hover { background: #903a1c; transform: scale(1.02); }
+        
+        .promotion-card-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 4000;
+            backdrop-filter: blur(5px);
+            font-family: 'STKaiti', '华文楷书', serif;
+        }
+        .promotion-card-content {
+            max-width: 560px;
+            width: 88%;
+            background: linear-gradient(145deg, #fffef2, #fff7e5);
+            border-radius: 72px 36px 72px 36px;
+            padding: 2rem 2rem 2rem;
+            border: 3px solid #e7bc73;
+            box-shadow: 0 30px 40px rgba(0,0,0,0.4), inset 0 1px 4px rgba(255,245,180,0.9);
+            text-align: center;
+            animation: modalFadeIn 0.4s ease-out;
+        }
+        .promotion-card-content h2 {
+            font-size: 2rem;
+            color: #b34922;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #e7bc73;
+            display: inline-block;
+            padding-bottom: 6px;
+        }
+        .promotion-text {
+            font-size: 1.7rem;
+            font-weight: bold;
+            color: #a03e1a;
+            background: #fcf1e0;
+            padding: 14px 22px;
+            border-radius: 60px;
+            display: inline-block;
+            margin: 20px 0 12px;
+            box-shadow: inset 0 0 0 1px #ffe2b5, 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .promotion-detail {
+            font-size: 1.3rem;
+            color: #3c2a1a;
+            line-height: 1.5;
+            margin: 16px 0;
+            background: #fff3e2;
+            padding: 15px;
+            border-radius: 48px;
+            font-weight: 600;
+        }
+        .promotion-detail span {
+            color: #bc5a2e;
+            font-size: 1.5rem;
+            display: inline-block;
+            margin: 0 4px;
+        }
+        .promotion-confirm {
+            background: #b7512a;
+            color: white;
+            border: none;
+            padding: 12px 36px;
+            font-size: 1.2rem;
+            border-radius: 60px;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 10px;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .promotion-confirm:hover { background: #8e3c1c; transform: scale(1.02); }
+        
+        .welcome-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(28, 20, 12, 0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+            font-family: 'STKaiti', serif;
+        }
+        .welcome-card {
+            background: #fff7e7;
+            max-width: 700px;
+            width: 90%;
+            border-radius: 80px 30px 80px 30px;
+            padding: 2rem 2rem 2rem;
+            text-align: center;
+            border: 2px solid #e2b76a;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5);
+            animation: modalFadeIn 0.5s;
+        }
+        .welcome-card h1 {
+            font-size: 2rem;
+            color: #ac4e2c;
+            margin-bottom: 20px;
+        }
+        .welcome-card p {
+            font-size: 1.2rem;
+            margin-bottom: 28px;
+            color: #5a3920;
+        }
+        .dynasty-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .dynasty-choice-btn {
+            background: #efdbc0;
+            border: 2px solid #b77b3c;
+            padding: 12px 26px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-radius: 60px;
+            cursor: pointer;
+            color: #7a3a1a;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .dynasty-choice-btn:hover {
+            background: #e4c89e;
+            transform: scale(1.02);
+            border-color: #ac522a;
+            color: #ac522a;
+        }
+        
+        .intro-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 6000;
+            font-family: 'STKaiti', serif;
+        }
+        .intro-card {
+            max-width: 800px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            background: #fffef5;
+            background-image: linear-gradient(145deg, #fffcf0, #fff7e8);
+            border-radius: 64px 32px 64px 32px;
+            border: 2px solid #e2bc7c;
+            box-shadow: 0 30px 50px rgba(0,0,0,0.5);
+            padding: 2rem 2rem 2rem;
+            position: relative;
+            animation: modalFadeIn 0.4s ease;
+        }
+        .intro-card h2 {
+            font-size: 2.2rem;
+            color: #b7512a;
+            text-align: center;
+            border-bottom: 2px solid #e2bc7c;
+            display: inline-block;
+            width: 100%;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .intro-section {
+            margin: 20px 0;
+            background: rgba(250, 240, 220, 0.5);
+            border-radius: 40px;
+            padding: 16px 24px;
+            border-left: 6px solid #b7512a;
+        }
+        .intro-section h3 {
+            font-size: 1.5rem;
+            color: #ac4e2c;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .intro-section p, .intro-section li {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #3a2a1a;
+        }
+        .term-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .term-badge {
+            background: #f3e9d2;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-size: 0.9rem;
+            border: 1px solid #caa65a;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .term-badge:hover {
+            background: #e7dbbc;
+            transform: scale(1.02);
+        }
+        .start-exam-btn, .back-menu-btn {
+            background: #b7512a;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            font-size: 1.2rem;
+            border-radius: 60px;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 20px;
+            width: 100%;
+            transition: 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .start-exam-btn:hover, .back-menu-btn:hover {
+            background: #8e3c1c;
+            transform: scale(1.02);
+        }
+        .close-intro {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #b7512a;
+            font-weight: bold;
+        }
+        
+        /* 错题本浮层面板 */
+        .wrongnote-panel {
+            position: fixed;
+            top: 70px;
+            left: 20px;
+            width: 380px;
+            max-width: calc(100vw - 40px);
+            max-height: 70vh;
+            background: #fffef5;
+            border-radius: 32px 20px 32px 20px;
+            border: 2px solid #e2bc7c;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+            z-index: 9000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(2px);
+            font-family: 'STKaiti', '华文楷书', serif;
+        }
+        .wrongnote-header {
+            background: #b7512a;
+            color: white;
+            padding: 12px 18px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .wrongnote-header span:first-child { letter-spacing: 2px; }
+        .close-wrongnote { background: none; border: none; color: white; font-size: 1.3rem; cursor: pointer; }
+        .wrongnote-list {
+            padding: 12px;
+            overflow-y: auto;
+            background: #fef8ec;
+            flex: 1;
+            max-height: 60vh;
+        }
+        .wrong-item {
+            background: #fffcf0;
+            border-left: 5px solid #b7512a;
+            margin-bottom: 12px;
+            padding: 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .wrong-item-header {
+            font-size: 0.75rem;
+            color: #b85a2e;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .wrong-question-text {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #3c2a1a;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        .wrong-practice-btn {
+            background: #b7512a;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 5px 14px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            margin-top: 5px;
+            transition: 0.2s;
+        }
+        .wrong-practice-btn:hover { background: #8e3c1c; }
+        .empty-wrong {
+            text-align: center;
+            color: #b87a48;
+            padding: 30px 10px;
+            font-size: 0.9rem;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @media (max-width: 900px) {
+            .dynasty-layout, .exam-main-layout { flex-direction: column; }
+            .options-grid { grid-template-columns: 1fr; }
+            .promotion-card-content { padding: 1.5rem; }
+            .promotion-text { font-size: 1.3rem; }
+            .promotion-detail { font-size: 1.1rem; }
+            .intro-card { padding: 1.5rem; }
+            .intro-section { padding: 12px 16px; }
+            .wrongnote-panel { width: 320px; left: 10px; top: 70px; }
+        }
+    </style>
+</head>
+<body>
+<div class="exam-wrapper">
+    <div id="dynastySelectScreen" class="dynasty-screen">
+        <button class="encyclopedia-btn" id="openEncyclopediaBtn">📚 科举百科辞典</button>
+        <div class="title-glow">📜 登科录 📜</div>
+        <div class="subhead">隋唐宋元明清 · 真题淬炼金榜名</div>
+        <div class="dynasty-layout">
+            <div class="cards-area">
+                <div class="dynasty-card-panel">
+                    <div class="dynasty-card" id="chooseSui"><div class="dynasty-icon">🪭</div><div class="dynasty-name">大 隋</div><div class="dynasty-badge">开创科举</div><div class="dynasty-desc">「分科举人，进士科始，天下英雄入吾彀中」</div></div>
+                    <div class="dynasty-card" id="chooseTang"><div class="dynasty-icon">🏮</div><div class="dynasty-name">大 唐</div><div class="dynasty-badge">诗赋取士</div><div class="dynasty-desc">「春风得意马蹄疾，一日看尽长安花」</div></div>
+                    <div class="dynasty-card" id="chooseSong"><div class="dynasty-icon">🫖</div><div class="dynasty-name">大 宋</div><div class="dynasty-badge">文德治世</div><div class="dynasty-desc">「书中自有黄金屋，书中自有颜如玉」</div></div>
+                    <div class="dynasty-card" id="chooseYuan"><div class="dynasty-icon">🐎</div><div class="dynasty-name">大 元</div><div class="dynasty-badge">延祐复科</div><div class="dynasty-desc">「中断与重开 · 左右榜取士」</div></div>
+                    <div class="dynasty-card" id="chooseMing"><div class="dynasty-icon">📜</div><div class="dynasty-name">大 明</div><div class="dynasty-badge">八股定式</div><div class="dynasty-desc">「十年窗下无人问，一举成名天下知」</div></div>
+                    <div class="dynasty-card" id="chooseQing"><div class="dynasty-icon">🖋️</div><div class="dynasty-name">大 清</div><div class="dynasty-badge">终结与变革</div><div class="dynasty-desc">「江山代有才人出，各领风骚数百年」</div></div>
+                </div>
+            </div>
+            <div class="custom-area">
+                <div class="custom-title">✍️ 翰林自命题</div>
+                <div class="form-group"><label>📌 归属朝代</label><select id="customDynasty"><option value="sui">大隋</option><option value="tang">大唐</option><option value="song">大宋</option><option value="yuan">大元</option><option value="ming">大明</option><option value="qing">大清</option></select></div>
+                <div class="form-group"><label>📖 场次名称</label><input type="text" id="customLevel" placeholder="例：额外附加题" value="自定义场次"></div>
+                <div class="form-group"><label>📜 题目内容</label><textarea rows="2" id="customQuestion" placeholder="请输入题目..."></textarea></div>
+                <div class="form-group"><label>🔘 选项 (A. B. C. D.)</label><div class="option-row"><input type="text" id="opt0" placeholder="A."></div><div class="option-row"><input type="text" id="opt1" placeholder="B."></div><div class="option-row"><input type="text" id="opt2" placeholder="C."></div><div class="option-row"><input type="text" id="opt3" placeholder="D."></div></div>
+                <div class="form-group"><label>✅ 正确索引 (0-3)</label><input type="number" id="customAnswer" min="0" max="3" value="0"></div>
+                <button class="add-quiz-btn" id="addCustomBtn">📌 存入本朝题库</button>
+                <div class="custom-list" id="customListPanel"></div>
+            </div>
+        </div>
+    </div>
+    <div id="gameMainScreen" class="game-screen">
+        <div class="exam-main-layout">
+            <div class="exam-paper">
+                <div class="exam-header"><h1 id="dynastyTitleDisplay">科举考场</h1></div>
+                <div class="info-bar-exam"><span id="level-name">加载中...</span><span id="question-count">第 1 题</span></div>
+                <div class="question-box" id="question-text">题目内容</div>
+                <div class="options-grid" id="options-container"></div>
+                <div id="feedback">
+                    <div id="feedback-msg" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;"></div>
+                    <div id="history-tip"><strong>📜 翰林批语（真题解析）：</strong><span id="tip-text"></span></div>
+                    <button class="next-btn" id="next-btn" style="margin-top:15px; display: none;" onclick="window.gameEngine.handleNext()">▶ 下一步</button>
+                </div>
+                <div class="progress-container"><div id="progress-bar"></div></div>
+                <div class="flex-row">
+                    <button class="back-dynasty-btn" onclick="backToMenu()">🏮 重选朝代</button>
+                    <button class="restart-btn" onclick="window.gameEngine.restartDynasty()">📖 重考本朝</button>
+                </div>
+            </div>
+            <div class="examiner-area">
+                <div class="examiner-sprite-container"><img id="examiner-img" src="" alt="考官"></div>
+                <div class="examiner-name" id="examinerName">主考官</div>
+                <div class="examiner-bubble" id="examinerTalk">士子请自重，静心答题。</div>
+            </div>
+        </div>
+        <div id="victory-screen">
+            <div class="seal">进士及第</div>
+            <h2 id="victory-title" style="font-size:2.5rem; color:#ac4e2c; margin-bottom:15px;"></h2>
+            <p id="victory-desc" style="font-size:1.2rem; color:#5a3a22; margin-bottom:30px; line-height:1.6;"></p>
+            <button class="next-btn" style="font-size:1.2rem;" onclick="backToMenu()">功成身退 (回主页)</button>
+        </div>
+    </div>
+</div>
+<button id="wrongNoteBtn" class="wrongnote-btn">📖 错题本</button>
+
+<script>
+    // ======================= 科举名词辞典（完整） =======================
+    const KEJU_TERMS = { 
+        "童试":"科举最初级考试，包括县试、府试、院试三个阶段，通过者称秀才。","乡试":"每三年一次在省城举行，考中者称举人，第一名称解元。","会试":"乡试次年春天在京城礼部举行，考中者称贡士，第一名称会元。","殿试":"由皇帝亲自主持的最终考试，分三甲录取，一甲三名：状元、榜眼、探花。","秀才":"通过院试的生员称号，获得参加乡试资格。","举人":"通过乡试者，具备做官资格。","贡士":"通过会试者，可参加殿试。","进士":"殿试合格者，是科举最高功名。","状元":"殿试一甲第一名。","解元":"乡试第一名。","会元":"会试第一名。","诗赋取士":"唐代进士科主要考诗赋，促进了唐诗繁荣。","行卷":"唐代考生将自己作品投递给名流权贵以求推荐。","糊名法":"宋代为防止考官徇私，将考生姓名密封，称为糊名。","誊录制":"宋代为防止通过笔迹辨认考生，由专人用红笔重新抄写答卷。","八股文":"明清科举规定的文章格式，由破题、承题、起讲等八部分组成。","翻译科":"清代为八旗子弟设立，考满汉文翻译。","南北卷":"明初分南北中卷录取，平衡地区差异。","庶吉士":"明朝选进士入翰林院学习，培养高级文官。","博学鸿词科":"清代特设制科。","延祐复科":"元仁宗延祐元年（1314年）恢复科举，次年举行乡试、会试，标志着元朝正式重开科举。","左右榜":"元朝科举分左右榜：蒙古、色目人为右榜，汉人、南人为左榜，分别录取，名额相等。","停科举":"元朝建立后近40年未举行科举，士人失去晋升途径。","四等人制":"元朝将人分为蒙古、色目、汉人、南人四等，科举名额和待遇存在差异。","三甲传胪":"殿试后按一甲二甲三甲公布名次，称传胪大典。","省试":"唐代科举中央级考试，由尚书省礼部主持，相当于宋以后的会试，通过者称贡士或进士，是入仕关键环节。","解试":"唐代科举地方选拔考试，由州府主持，通过者可获得参加省试的资格，第一名称“解元”。","崇文抑武":"宋朝基本国策，通过尊崇文官、抑制武将权力来防止藩镇割据与武将篡位，促进文化繁荣但也导致军事实力相对削弱。","取士不问家世":"宋代科举制度的核心理念，不问家庭出身，仅凭考试成绩录用人才，极大促进社会阶层流动，打破门第限制。","八旗科举":"清代为八旗子弟专门设立的科举体系，包含翻译科、满洲科、蒙古科等，旨在保障旗人入仕通道，与汉人科举并行，体现“首崇满洲”的政策导向。",
+        "分科举人":"隋文帝开皇七年（587年）正式设立“志行修谨”“清平干济”二科，分科选拔人才，打破九品中正制，标志科举制萌芽。","进士科":"隋炀帝大业二年（606年）正式创设进士科，以试策取士，成为后世科举最高级别科目，被誉为“科举制正式诞生”的标志。","科举制开创":"隋朝废九品中正制，采用分科考试方式选拔官员，是中国选官制度划时代的变革，为后世历代沿用。"
+    };
+    function showTermCard(term, desc) { const modalDiv = document.createElement('div'); modalDiv.className = 'level-card-modal'; modalDiv.innerHTML = `<div class="level-card-content"><h3>📖 ${term}</h3><p>${desc}</p><button class="card-skip-btn">关闭</button></div>`; document.body.appendChild(modalDiv); modalDiv.querySelector('.card-skip-btn').onclick = () => modalDiv.remove(); modalDiv.addEventListener('click', (e) => { if (e.target === modalDiv) modalDiv.remove(); }); }
+    function getRankFromLevel(levelName) { if(levelName.includes("隋代科举真题")) return "进士及第 · 科举先驱"; if(levelName.includes("院试")||levelName.includes("童试")||levelName.includes("秀才科")) return "生员 (秀才)"; if(levelName.includes("乡试")||levelName.includes("进士科")) return "举人 / 进士科及第"; if(levelName.includes("会试")) return "贡士"; if(levelName.includes("殿试")) return "进士及第 · 天子门生"; if(levelName.includes("解试")) return "乡贡举人"; if(levelName.includes("省试")) return "贡士"; return "科举功名"; }
+    const LEVEL_CARD_MAP = { "隋代科举真题 · 初创特征": "🏯 【隋代科举真题】隋朝科举仍属初创阶段，保留了大量过渡时期的特征，考试由吏部主持，但中央统一命题、统一考试的规范尚未建立。本套真题聚焦隋朝科举制度、户籍治理与选官革新，助你洞察科举开创期的历史细节。" };
+    function getCardContent(levelName) { return LEVEL_CARD_MAP[levelName] || `📖 【${levelName}】本场侧重科举制度与历史真题。`; }
+    
+    // ======================= 完整原始题库 =======================
+    const FULL_SUI = [ { levelName: "隋代科举真题 · 初创特征", questions: [ { q: "仁寿元年(601年),隋文帝下令\"延集学徒，崇建庠序，开进仕之路\"。隋炀帝继位后，扩大学校规模，征辟儒生，实行科举取士。这说明隋朝()", options: ["A. 官员文化素质提高", "B. 遏制佛道二教传播", "C. 重视发展儒学教育", "D. 寒门庶族力量增强"], answer: 2, tip: "材料体现隋朝重视发展儒学教育，通过兴建学校、征辟儒生、科举取士推动儒学，故C正确。" },{ q: "隋朝统一后，针对南北朝以来户籍混乱、人口隐匿问题，朝廷下令地方官要亲自核查百姓年龄、容貌，确保户籍记载与本人相符；中央制定民户等级标准以及相应的赋税额，作为定样发至州县，作为征派依据。若发现户籍不实，不仅百姓受罚，基层官吏也会被追责。这两项制度的推行()", options: ["A. 解决了土地兼并问题", "B. 导致了人口数量激增", "C. 提升了国家治理能力", "D. 减轻了民众赋税负担"], answer: 2, tip: "通过规范户籍管理、统一赋税标准和强化追责机制，有效提升了中央对地方的管控能力和国家治理能力，故C正确。" },{ q: "隋文帝杨坚是中国历史上著名的勤于听受、事必躬亲的皇帝，\"留心治道，无惮疲劳\",\"一日之内，酬答百司，至乃日旰忘食，夜分未寝，动以文簿，忧劳圣躬\"。这反映出()", options: ["A. 完善政府运行机制的必要", "B. 君主专制空前强化达到顶峰", "C. 政府行政效率有较大提高", "D. 隋朝科举选官制度亟待完善"], answer: 0, tip: "材料反映皇帝事必躬亲、酬答百官，说明当时政府运行机制存在低效和积弊，迫切需要改革运行机制，故A正确。" },{ q: "在对隋朝90位科举及第者的家庭出身情况统计分类中，高级官吏家庭占44%，一般官吏家庭占据26%，寒素家庭占据25%。据此可知隋代的科举制()", options: ["A. 推动了社会阶层的流动", "B. 禁锢了士人的思想", "C. 消除了士族政治的影响", "D. 实现了儒学的复兴"], answer: 0, tip: "一般官吏和寒素家庭通过科举进入仕途，相比于魏晋门阀垄断，推动了社会阶层流动，故A正确。" },{ q: "《新唐书》指出：\"唐制取士之科多由隋旧。\"据此可知()", options: ["A. 隋唐时期依然盛行世官制", "B. 唐朝科举缺乏改革创新", "C. 隋朝开创了新的选官制度", "D. 唐朝官员多为前朝旧臣"], answer: 2, tip: "科举制起源于隋朝，唐朝继承并发展，故材料表明隋朝开创了新的选官制度，C正确。" } ] } ];
+    const FULL_TANG = [ { levelName: "解试 · 乡贡举人 (真题关)", questions: [ { q: "（2025·陕晋青宁卷·高考真题）唐弘道元年（683），侍中裴炎改任中书令，将原设在门下省的政事堂迁至中书省。神龙元年（705），豆卢钦望担任尚书右仆射，因未获得“同中书门下三品”的称号而无法参加宰相议事会议，这说明唐代（   ）", options: ["A．宰相的行政权力进一步加强", "B．政事堂成为三省权力核心", "C．中枢机构呈现出一体化趋势", "D．三省长官可共同商议国政"], answer: 2, tip: "材料体现三省职能通过政事堂整合，中枢一体化趋势明显。正确答案C。" },{ q: "（2024·江西·高考真题）唐代诏令用纸书写，颁下州县的诏令需长时间传递，白麻纸招虫，不能耐久，故用黄麻；重大诏命或当朝宣命，无须久存，故用白麻。黄轻白重，遂为故事。大约到德宗时，中书只有黄麻可用，白麻已皆在翰林院。这折射出（   ）", options: ["A．行政效率提高", "B．中央集权加强", "C．决策事权转移", "D．科举影响扩大"], answer: 2, tip: "决策起草权从三省向翰林学士转移，折射决策事权转移。正确答案C。" },{ q: "（2025·安徽·高考真题）唐德宗建中元年（780）定两税法，规定户税征钱，地税征谷物，而物轻钱重，民以为患。税法行四十年后，税额如故，当年若纳绢二匹半者，今需八匹，约要三倍之多，故农人日困，末业日增。这可用以说明，当时（   ）", options: ["A．征税标准渐以人丁为主", "B．货币贬值加重农民负担", "C．以庸代役利于农业生产", "D．税法改革促进商业发展"], answer: 3, tip: "物轻钱重导致农民多卖产品纳税，弃农从商者增多，促进商业发展。正确答案D。" } ] },{ levelName: "省试 · 进士科 (真题关)", questions: [ { q: "（2024·重庆·高考真题）唐朝为边疆防御节度使，每个节度使领属数万军队，兵将形成长期密切的关系。节度使的设置缓解了边疆外族势力对朝廷的压力，然而天宝年间发生了安史之乱。这说明节度使（    ）", options: ["A．制度具有重大的缺陷", "B．由蕃将充任是严重失误", "C．没有边地军队调兵权", "D．打破了外重内轻的局面"], answer: 0, tip: "节度使权力过大缺乏制衡，反映制度设计缺陷。正确答案A。" },{ q: "（2025·黑吉辽蒙卷·高考真题）大酺是指朝廷特许的官民会聚宴饮。有学者统计：唐太宗朝赐大酺九次，高宗朝赐十三次，每次持续三天或五天；武则天当政时赐大酺二十次，主要集中于其称帝前后，多为七天甚至有三次长达九天。这反映出武则天（   ）", options: ["A．意欲规范国家礼制", "B．积极推动社会经济发展", "C．注重加强君臣互动", "D．急于宣扬其称帝合法性"], answer: 3, tip: "武则天称帝前后频繁超规格举办大酺，旨在凝聚认同、宣扬武周政权合法性。正确答案D。" },{ q: "（2024·全国甲卷·高考真题）《齐民要术》提倡在市场附近种植速生树种以获利。隋代长安大量屯兵，出现“樵贵帛贱”的现象。唐中期“京师苦樵薪乏”，后期百姓甚至砍伐桑树，运到市场上“卖作蒸薪”。上述现象表明隋唐时期（　　）", options: ["A．重农抑商政策废弛", "B．都城能源问题突出", "C．自然生态环境好转", "D．市镇经济开始崛起"], answer: 1, tip: "长安长期缺乏薪柴，甚至砍伐桑树卖薪，反映都城能源供应紧张。正确答案B。" } ] },{ levelName: "殿试 · 天子门生 (真题关)", questions: [ { q: "（2025·四川·高考真题）度牒是唐代官方颁发的僧尼身份凭证。安史之乱后，宰相杨炎奏请“鬻官及度牒以佐军用”，朝廷遂以售卖官职与度牒充盈财政，此后地方节度使亦竞相效仿。这反映了（   ）", options: ["A．赋税改革后经济恢复", "B．中央与藩镇关系的缓和", "C．寺院经济的蓬勃发展", "D．唐朝政府财政危机严重"], answer: 3, tip: "售卖度牒填补军费，说明中央财政拮据，危机深重。正确答案D。" },{ q: "（2022·全国甲卷·高考真题）西晋至唐初，皇子皇弟封王开府，坐镇地方，手握重权。唐玄宗在京城专门修建一座大宅邸，集中安置诸王，由宦官管理，称为“十王宅”，又仿此建“百孙院”。此后，唐朝沿用该制度。由此可知，唐后期对皇子皇孙的安置（    ）", options: ["A．削弱了藩镇势力", "B．强化了分封体制", "C．凸显了专制集权", "D．动摇了宗法制度"], answer: 2, tip: "集中安置诸王，削弱皇子势力，强化皇帝对皇族控制，凸显专制集权。正确答案C。" },{ q: "（2023·重庆·高考真题）唐后期，科举放榜后，新科进士一般会到主考官府邸谢恩，称为“拜主司”。“主司列席缛，东面西向。主事揖状元已下，与主司对拜。”三日后，再次前往谢恩，称“曲谢”。这一现象会导致（   ）", options: ["A．文官之间易结朋党", "B．官员施政能力下降", "C．官场礼仪更加繁琐", "D．官吏考核制度变革"], answer: 0, tip: "座主与门生关系形成，易结为政治朋党，影响晚唐政局。正确答案A。" } ] } ];
+    const FULL_SONG = [ { levelName: "解试 · 发解举人（真题关）", questions: [ { q: "（2025·四川·高考真题）南宋初年，因战争破坏导致科举无法在中央举行，朝廷遂令地方政府主持类省试。至绍兴三年，朝廷废除其他地区的类省试，将考试事务收归中央，唯独保留巴蜀地区单独举行类省试的特权。这一现象的出现（   ）", options: ["A．打破了门阀政治传统", "B．推动了商品经济发展", "C．得益于儒学复兴运动", "D．有利于蜀地教育发展"], answer: 3, tip: "南宋类省试在蜀地单独保留，促进当地教育投入和发展，故D正确。" },{ q: "（2025·山东·高考真题）据《文献通考》记载，宋徽宗宣和（1119～1125）末年有节度使60人，其中亲王、皇子26人，宗室11人，前执政2人，大将4人，外戚10人，宦官7人。这表明北宋（   ）", options: ["A．利用宗室贵戚节制地方", "B．对地方权力分配作了调整", "C．权力分割影响了行政效率", "D．实现了统兵权与调兵权分离"], answer: 1, tip: "北宋通过授予宗室、外戚等无实权节度使荣誉衔，调整地方权力结构，防止武将专权，故B正确。" },{ q: "（2024·重庆·高考真题）王安石认为，“天”是自然的、物质的，沿着自己的道路即“天道”运行和变化着，“可无作好，天作恶，无偏无觉，无反无侧”。人也同样按照自己的道路即“人道”活动和发展着。这主要反映了王安石（       ）", options: ["A．朴素的辩证法思想", "B．传统的伦理观", "C．朴素的唯物论思想", "D．传统的天命观"], answer: 2, tip: "王安石强调天的自然物质性，属于古代朴素唯物论思想，故C正确。" } ] },{ levelName: "省试 · 贡士之阶（真题关）", questions: [ { q: "（2024·辽宁·高考真题）赦书是朝廷颁布赦令的文告。宋仁宗天圣二年（1024年），因赦书由书吏抄录多有差错，致使地方州县“错认刑名，失行恩赏”，遂下诏“自今赦书，令刑部摹印颁行”。由此赦书“勒楷书写本”，经勘读后雕版“印造发递”。此举有助于（   ）", options: ["A．扩大朝廷政令推行范围", "B．提高国家行政管理能力", "C．强化地方民众法律意识", "D．完善朝廷文书传递体系"], answer: 1, tip: "雕版印造赦书避免抄录错误，提升行政管理效能，故B正确。" },{ q: "（2025·云南·高考真题）北宋前期朝廷向大批普通官员颁授“敕授告身”作为委任凭证，其文词虽由中书门下的舍人院负责起草，但告身文书在形式上却由三省和吏部签署下发。这说明（   ）", options: ["A．三省体制影响尚存", "B．中枢机构互相制衡", "C．朝廷变法重建三省", "D．官僚队伍极度膨胀"], answer: 0, tip: "告身文书形式上仍经三省与吏部签署，体现三省体制的象征性影响尚存，故A正确。" },{ q: "（2022·全国乙卷·高考真题）宋朝在州府设通判，重要州府设两名，民户少的州可以不置，但若武官任知州，则必置。通判有自己专属的衙门通判厅，与知州（府）共议政务、同署文书，“有军旅之事，则专任钱粮之责”。据此可知，设置通判的主要目的是（    ）", options: ["A．规范地方行政", "B．防止武人干政", "C．提升军事能力", "D．削弱州府权力"], answer: 0, tip: "通判与知州同署文书、共议政务，协理政事并监督制衡，主要目的为规范地方行政，故A正确。" } ] },{ levelName: "殿试 · 天子门生（真题关）", questions: [ { q: "（2023·海南·高考真题）有学者认为，宋代的识字率相对较高。真定府的一处摩崖石刻显示，山区牧羊人也有能读会写者；南方农村的文化教育水平高于北方，如建州“耕且读者十家而五六”，邵武军的许多村落“皆聚徒教授”。这一现象表明当时（   ）", options: ["A．书院制度日趋完备", "B．雕版印刷相当普及", "C．崇文兴教渐成风尚", "D．文化重心已经南移"], answer: 2, tip: "宋代识字率高，偏远山区及农村教育普及，反映崇文兴教的社会风尚，故C正确。" },{ q: "（2021·全国乙卷·高考真题）宋代，官府强调“民生性命在农，国家根本在农，天下事莫重于农”，“毋舍本逐末”。苏辙说：“凡今农工商贾之家，未有不舍其旧而为士者也。”郑至道说，士农工商“皆百姓之本业，自生民以来未有能易之者也”。从中可以看出宋代（   ）", options: ["A．商品经济发展受到阻碍", "B．重农抑商政策瓦解", "C．社会群体间流动性增强", "D．四民社会地位相同"], answer: 2, tip: "农工商贾之家皆可舍旧业而为士，表明社会阶层流动增强，故C正确。" },{ q: "（2023·重庆·高考真题）武成王庙，又称太公庙，是古代国家祭祀兵家鼻祖吕尚的祠庙。唐玄宗时，曾下令在两京及诸州各置太公庙一所，按文宣王庙的规格进行祭祀。但到宋代，仅在京师及个别地方保留武成王庙，祭祀规格也低于文宣王庙。这一现象反映出宋代（   ）", options: ["A．漠视兵家思想", "B．抑制地方势力", "C．打压民间信仰", "D．实行抑武方针"], answer: 3, tip: "武成王庙规格及数量大幅降低，体现宋代重文轻武、抑武扬文的方针，故D正确。" } ] } ];
+    const FULL_MING = [ { levelName: "童试 · 生员之始", questions: [ { q: "(2024·湖北·高考真题)赵翼《廿二史札记》中有“明祖行事多仿汉高祖”条:“明祖以布衣起事，与汉高同，故幕下士多以汉高事陈说于前，明祖亦遂有一汉高在胸中，而行事多仿之。”下列举措符合这一说法的是()", options: ["A. 定鼎前朝旧都", "B. 推行文化专制", "C. 废除行政中枢", "D. 建立宗室藩屏"], answer: 3, tip: "明太祖仿汉高祖建立宗室藩屏，分封子弟到各地做藩王，D项正确。" },{ q: "(2025·黑吉辽蒙卷·高考真题)明嘉靖年间，俞大猷上疏建议，渔民出海时“渔船大者二十五只为一䑸”，“小者五十只为一䑸”，令每䑸“合造楼船一只以为兵船”，其“驾船兵哨”由官府“照依雇兵之例，给与口粮”，使其“大小相资，各有实用”。该建议（   ）", options: ["A. 有助于完善海防体系", "B. 有利于扩充水师建制", "C. 着眼于维护海外贸易", "D. 致力于减轻财政负担"], answer: 0, tip: "该建议将民船与兵船结合，官民协作防倭，弥补水师不足，完善海防体系，故选A。" } ] },{ levelName: "乡试 · 解元之路", questions: [ { q: "(2025·重庆·高考真题)1521年嘉靖帝以藩王身份即位，欲尊其生父兴献王为“皇考”，内阁首辅杨廷和率朝臣反对，因事关国家礼制根本，遂令朝臣廷议，双方坚持不下，尚在礼部观政的张璁亦上疏言此事，嘉靖帝大喜，“亟下廷臣议”，结果仍不能使他满意。三年后，皇帝的支持者增多，“复下廷议”，未果后“自排廷议定大礼”。可见当时（   ）", options: ["A. 中央决策机构相对规范", "B. 封建礼制得以强化", "C. 国家行政体系日臻完备", "D. 内阁成为决策机构"], answer: 0, tip: "大礼议中多次廷议，反映廷议作为制度化的决策程序存在，中央决策机构相对规范，故选A。" },{ q: "(2025·全国卷·高考真题)明中后期，各地出现具有全国影响的特色产业，如苏松地区的棉纺织业，杭州的丝织业，江西景德镇的制瓷业，广东佛山的冶铁业，福建的造纸业，河南、山东的棉花种植业等。这一局面的形成（   ）", options: ["A. 实现了南北经济的平衡", "B. 瓦解了传统生产方式", "C. 促进了工商业市镇发展", "D. 提升了商人政治地位"], answer: 2, tip: "特色产业促进商品经济发展和专业化分工，带动工商业市镇兴起和繁荣，故选C。" } ] },{ levelName: "会试 · 贡士之阶", questions: [ { q: "(2021·天津·高考真题)明初“立中书省以总天下之文治”，胡惟庸任丞相时，“生杀黜陟，或不奏径行”。朱元璋以“擅权植党\"罪名诛杀胡惟庸，取消中书省。造成丞相“擅权”的根本原因是( )", options: ["A. 丞相个人贪权揽政", "B. 制度导致权力失衡", "C. 中央集权受到削弱", "D. 君主专制逐步强化"], answer: 1, tip: "中书省制度赋予丞相过大权力且缺乏制衡，导致权力失衡，丞相易擅权，故选B。" },{ q: "(2023·新课标卷·高考真题)我国东南沿海某港口，在15世纪只是一个“结茅而居”的渔村，到16世纪，已成为“繁华世界”，“宝货塞途，家家歌舞赛神，钟鼓管弦，连飙响答”，时称“小苏杭”。能够说明这一现象的是（   ）", options: ["A. 朝贡贸易繁荣", "B. 农业生产技术进步", "C. 白银大量流入", "D. 海上丝绸之路兴起"], answer: 2, tip: "新航路开辟后白银大量流入中国，促进了东南沿海港口城市兴起繁荣，故选C。" } ] },{ levelName: "殿试 · 三甲传胪", questions: [ { q: "(2022·山东·高考真题)明朝时期，朝廷除对各地的监察御史进行考核外，还要求地方按察使司按时据实上报御史巡按地方时有无铺张浪费以劳州县等情况。这些规定旨在（   ）", options: ["A. 保证监察规范有效", "B. 限制监察御史权力", "C. 协调中央与地方的关系", "D. 拓宽对地方的监察渠道"], answer: 0, tip: "朝廷加强对监察御史的管理考核，目的是保证监察规范有效，故选A。" },{ q: "(2021·全国甲卷·高考真题)明代，在浙江桐乡县，地方官员若出身进士，当地的秀才就“不胜谄事”，若出身举人，便随意提出要求，“苟不如意，便加词色犯之”。这现象反映出（   ）", options: ["A. 官员士绅之间关系紧张", "B. 士人舆论左右地方政事", "C. 出身等级决定行政能力", "D. 科考功名影响官员威望"], answer: 3, tip: "进士功名比举人更具威望，秀才态度差异反映科考功名影响官员威望，故选D。" } ] } ];
+    const FULL_YUAN = [ { levelName: "乡试 · 经史策论 (真题关)", questions: [ { q: "（2024·广东·高考真题）《大元一统志》是忽必烈下令修纂的全国地理志书，记载了疆域内路府州县古今建置沿革及山川、风俗、里至等内容。该志书修纂时，由各行省提供所辖郡邑的图志及各路府州县的沿革，并利用了西域地图，引进了阿拉伯地图制图法。这反映元朝（   ）", options: ["A．建立了中原传统影响下的统治秩序", "B．边疆少数民族地区得到了全面发展", "C．地理志修纂体例发生了根本变化", "D．正式确立了儒家思想的正统地位"], answer: 0, tip: "元朝通过修撰全国性地理志树立正统地位，为全国统治秩序寻求合法性，体现中原传统影响下的统治秩序。正确答案A。" },{ q: "（2025·海南·高考真题）元朝建立初期，忽必烈曾三次下令募民到淮河地区垦荒，并给予民众三年免交赋税的优惠政策。此举主要因为（   ）", options: ["A．朝廷的财政充裕", "B．长期战乱破坏了当地经济", "C．游牧民族农耕化", "D．大运河兴修适合农业灌溉"], answer: 1, tip: "元朝建立前淮河地区受战争破坏严重，经济凋敝，募民垦荒并免税旨在恢复当地经济。正确答案B。" },{ q: "（2022·浙江·高考真题）元朝是中国历史上首个由少数民族建立的大一统王朝，疆域广大、民族众多、推进了新的民族融合。下列关于元朝巩固统一多民族国家的举措，叙述正确的是（   ）", options: ["A．首次设立枢密院主管军事", "B．在西南地区实行土司制度", "C．确定行省以下的行政区划依次为道、州、县", "D．设理藩院管辖西藏和四川、青海部分地区"], answer: 1, tip: "元朝在西南边疆实行土司制度，任用当地首领进行管理，加强对边远地区的控制。正确答案B。" } ] },{ levelName: "会试 · 时务对策 (真题关)", questions: [ { q: "（2022·江苏·高考真题）元朝创建行御史台“主察行省”。至元二十年，江淮行省“有欲专肆而忌廉察官者”，建议行御史台隶属行省。经重臣董文用据理力争，该图谋未能得逞。至元二十八年，行御史台不受行省节制在法令上被确认。这说明元代（   ）", options: ["A．行省长官的特权受到否定", "B．地方权力的监督机制得到改善", "C．地方的吏治问题得以解决", "D．行省事务最终由朝廷大臣决定"], answer: 1, tip: "行御史台独立于行省并获法令保障，有效监察地方，改善了地方权力的监督机制。正确答案B。" },{ q: "（2025·陕晋青宁卷·高考真题）元代北方的散曲是宋词与北方各民族乐曲的综合产物，其在句式上可根据需要增添衬字；内容上运用大量方言、俚语，语言表现更加自由。这（   ）", options: ["A．反映了城市经济的繁荣", "B．体现了多元文化的融汇", "C．得益于市民阶层的兴起", "D．受到了儒学复兴的影响"], answer: 1, tip: "散曲融合宋词与北方各民族乐曲，体现汉族与少数民族文化交融，是多元文化融汇的典型。正确答案B。" },{ q: "（2021·海南·高考真题）元延祐元年（1314年）恢复开科取士，规定凡考经问或明经的人，以《大学》《论语》《孟子》《中庸》为课本，以朱熹《四书章句集注》为参考书。由此，科举再次成为思想与权力之间的制度化链接。此举意在（   ）", options: ["A．尊重前朝传统文化信仰", "B．争取汉族士人的政治认同", "C．缓和中央与地方的矛盾", "D．恢复程朱理学的正统地位"], answer: 1, tip: "元朝以儒家经典开科取士，有利于汉族士人进入仕途，加强汉族士人对元朝的政治认同。正确答案B。" } ] },{ levelName: "殿试 · 御试集贤 (真题关)", questions: [ { q: "（2018·天津·高考真题）元朝在地方实行行省制度。行省“掌国庶务，统郡县，镇边鄙……凡钱粮、兵甲、屯种、漕运、军国重事，无不领之”，但地方官吏的选用主要由中书省和吏部负责，调动行省所属军队须皇帝批准。这表明元朝（   ）", options: ["A．地方拥有适度权力", "B．地方缺乏实际权力", "C．行省权力集中专断", "D．君主专制得以加强"], answer: 0, tip: "行省掌握地方大权但官吏选用和军队调动受中央节制，体现了地方拥有适度权力。正确答案A。" },{ q: "（2024·湖北·高考真题）元英宗即位初，中书省奏议：南宋故地纳入版图四十余年来，有田地的纳地税，做买卖的纳商税，此外别无征发，比北方的汉人负担要轻；田多的富户们，有的一年收二三十万石租子，纳的官粮却轻。据此可知，元朝前期（    ）", options: ["A．抑制土地兼并", "B．优容江南经济", "C．简化赋税名目", "D．提高南人地位"], answer: 1, tip: "元朝前期江南地区赋税较轻，政府对江南经济采取优容政策，以稳定经济秩序。正确答案B。" },{ q: "（2024·安徽·高考真题）1311年，朝廷遣官至江浙议海运事。尝令海船自扬子江逆流而上，至江东宁国、池、饶、建康等处运粮，然航道险阻，“粮船俱坏，岁岁有之。又湖广、江西之粮运至真州泊入海船，船大底小，亦非江中所宜”。于是将嘉兴、松江秋粮，及江淮、江浙财赋都总管府岁征之粮一并海运。这说明，元代（    ）", options: ["A．江南粮食商品化程度高", "B．税粮北运促进海运发展", "C．长江流域经济趋于平衡", "D．财赋重心沿江逐渐西移"], answer: 1, tip: "为解决税粮北运困难，元朝发展海运，将江南粮食通过海路运往北方，促进了海运发展。正确答案B。" } ] } ];
+    const FULL_QING = [ { levelName: "院试 · 秀才入门 (真题关)", questions: [ { q: "（2020·全国l卷·高考真题）清代，纂修宗谱成为一种普遍的社会行为，每部宗谱均有族规、家训，其内容主要包括血缘伦理、持家立业、报效国家等。这表明，宗谱的纂修(  )", options: ["反映了科举制度的导向作用", "体现了儒家思想观念", "维持了士族家庭的血统纯正", "确立了四民社会结构"], answer: 1, tip: "“持家立业”“报效国家”等思想都是儒家思想的内容，在族谱中存在这些内容说明宗谱的纂修体现了儒家思想观念，故选B。" },{ q: "（2025·河南·高考真题）下面为1811年山西某商人家庭的一份分家书（摘编）。据此可知（  ）\n“立分伙约人王加思所生四子，因父年老衰弱，不欲经理，将家内产业，俱已分发。惟恒裕当生理，不欲分拆，故立合伙。将父之本钱一千串整，作为二股，兄弟四人，每人入小本一千五百串整，作为三股，各亲随人力一股，以上人银共作一十八股，日后获利，按股均分。”", options: ["商业契约规范行业竞争秩序", "晋商群体接纳近代经营方式", "商品经济发展冲击血缘亲情", "财产分配影响产业代际传承"], answer: 3, tip: "这份分家书反映了财产分配对家族产业代际传承的影响，父亲将家产分配给四个儿子，但保留了“恒裕当”作为合伙经营，体现了财产分配方式直接影响产业的延续模式，D项正确。" } ] },{ levelName: "乡试 · 举人之路 (真题关)", questions: [ { q: "（2024·新课标卷·高考真题）清乾隆进士李调元在《卖田说》中借佃户王某之口说明“卖田以佃田”的好处：家中有十亩耕地，难以养活十口之家；卖出自己的十亩地，则可以长期租佃一百亩维持生计，且能免于官府钱粮加派。当时农业中租佃关系的盛行（  ）", options: ["延续了个体农耕方式", "遏制了土地兼并扩大", "抑制了商业货币经济", "削减了国家赋税来源"], answer: 0, tip: "在当时，农民如果把自家的十亩耕地卖了,得来的钱作为押金,可以承租百亩，且成为佃户之后免掉了官府的田租、徭役。租佃关系的盛行，个体农耕为主要的生产形式，A项正确。" },{ q: "（2024·全国甲卷·高考真题）清代，《三国演义》《西游记》等数十部小说被翻译成满语印行。另《大清律例》规定，对内容“秽恶”的小说“尽行销毁”，如再制作、售卖、阅读，加以刑处。这使（  ）", options: ["通俗文化发展陷入停滞", "法律体系完成了儒家化", "君主专制统治趋于僵化", "传统社会伦理得到维护"], answer: 3, tip: "《三国演义》《西游记》等小说因崇尚道义、忠诚等主题，符合儒家传统伦理道德，被翻译成满语传播，一些内容被定义为“秽恶”的小说则在《大清律例》中被禁止，这种二分法维护了传统社会伦理，D项正确。" } ] },{ levelName: "会试 · 贡士之阶 (真题关)", questions: [ { q: "（2025年福建省高考历史真题）乾隆年间，西北地区方志的编纂进入高峰，内容以屯田、水利、兵防最为详细，编者多为承担军事保障的官员。由此可知，该时期西北方志编纂的主要目的在于（  ）", options: ["统筹区域军事资源", "吸引百姓移民实边", "服务国家战略需要", "指导官员治理地方"], answer: 2, tip: "该举措是在平定叛乱后为加强对西域的控制而进行的系统性调查，直接服务于国家边疆战略需求，C项正确。" },{ q: "（2023年高考北京历史真题）清乾隆帝曾诏谕山东巡抚，称其奏折所述事宜为日常公事，不合体制。此后，乾隆帝多次晓谕各省督抚，此类公事应当使用题本文书，经内阁等部门呈送；只有“案关重大，决不待时者”才可用奏折。由此判断（  ）", options: ["奏折最早出现在乾隆年间", "奏折制度有利于制衡皇权", "奏折具有机密高效的特点", "奏折需要经内阁中转呈送"], answer: 2, tip: "乾隆时期规范了对奏折使用的要求，只有那些特别重要、特别紧急的事务，才可通过奏折进行上奏，说明清朝的奏折具有机密高效的特点，便于皇帝对地方的控制，C项正确。" } ] },{ levelName: "殿试 · 进士及第 (真题关)", questions: [ { q: "（2025年广西高考历史真题）清政府统一台湾后，设法招徕移民，赴台谋生之人日多。乾隆五十三年，协办大学士福康安道，对台湾“稽查奸匪不可不严，而百余年来，休养生息，贩运流通，实与内地无异”。由此可知清政府（  ）", options: ["重视台湾的开发与治理", "改变闭关自守政策", "注重提升台湾海防地位", "推行因俗而治政策"], answer: 0, tip: "清政府统一台湾后招徕移民，促进台湾人口增长与开发，又注重稽查奸匪、保障社会秩序和商贸流通，体现了对台湾开发与治理的重视，A项正确。" },{ q: "（2022年高考全国甲卷历史真题）康熙年间，多次令各地举荐山林隐逸，又令官员推举博学鸿儒，吸收学行兼优之士。开设明史馆，召集文人编纂明史，还进行多部儒经传注的修纂，编成《康熙字典》。上述措施的主要目的是（  ）", options: ["承续华夏传统", "倡导疑古辨伪", "弘扬程朱理学", "保存历史文献"], answer: 0, tip: "康熙年间注重吸纳山林隐逸、博学鸿儒，同时编修明史，修撰儒经传注，这些举措意在传承华夏文化传统，A项正确。" } ] } ];
+    const ORIGINAL_DATA = { sui: FULL_SUI, tang: FULL_TANG, song: FULL_SONG, yuan: FULL_YUAN, ming: FULL_MING, qing: FULL_QING };
+    const EXAMINER_IMAGES = { sui: "https://s41.ax1x.com/2026/04/09/peduO9f.png", tang:"https://s41.ax1x.com/2026/04/09/pedlkCt.png", song:"https://s41.ax1x.com/2026/03/31/pe8shHU.png", ming:"https://s41.ax1x.com/2026/04/02/peJMhzd.png", qing:"https://s41.ax1x.com/2026/04/02/peJMxQs.png", yuan:"https://s41.ax1x.com/2026/04/09/pedeilQ.png" };
+    let customQuestions = [];
+    
+    // 错题本核心 (累积模式: 只增不减)
+    let wrongQuestions = [];
+    function generateQuestionId(dynasty, levelName, questionText) { return `${dynasty}|${levelName}|${questionText}`; }
+    function addWrongQuestion(dynasty, levelName, questionObj) { 
+        if(!questionObj) return; 
+        const id = generateQuestionId(dynasty, levelName, questionObj.q); 
+        if(!wrongQuestions.some(w => w.id === id)) { 
+            wrongQuestions.push({ id, dynasty, levelName, question: JSON.parse(JSON.stringify(questionObj)) }); 
+            localStorage.setItem("keju_wrong", JSON.stringify(wrongQuestions)); 
+            refreshWrongPanelIfOpen(); 
+        } 
+    }
+    // 注意：累积模式下永不主动移除错题，故移除函数已废弃，但保留空实现以防调用。
+    function removeWrongQuestionById(id) { /* 累积模式：不执行任何移除操作 */ }
+    function loadWrongStorage() { const stored = localStorage.getItem("keju_wrong"); if(stored) wrongQuestions = JSON.parse(stored); }
+    let currentWrongPanel = null;
+    function refreshWrongPanelIfOpen() { if(currentWrongPanel) buildWrongPanelContent(currentWrongPanel.querySelector('.wrongnote-list')); }
+    function buildWrongPanelContent(container) { 
+        container.innerHTML = ''; 
+        if(wrongQuestions.length===0) { container.innerHTML = '<div class="empty-wrong">📭 暂无错题，继续应试～</div>'; return; } 
+        wrongQuestions.forEach((item) => { 
+            const div = document.createElement('div'); div.className = 'wrong-item'; 
+            const dynastyName = { sui:'隋', tang:'唐', song:'宋', yuan:'元', ming:'明', qing:'清' }[item.dynasty]; 
+            div.innerHTML = `<div class="wrong-item-header"><span>${dynastyName} · ${item.levelName}</span><span>❌</span></div><div class="wrong-question-text">${item.question.q.length>60?item.question.q.substring(0,60)+'…':item.question.q}</div><button class="wrong-practice-btn" data-id="${item.id}">✍️ 再练此题</button>`; 
+            container.appendChild(div); 
+        }); 
+        container.querySelectorAll('.wrong-practice-btn').forEach(btn => { 
+            btn.addEventListener('click', (e) => { 
+                const id = btn.getAttribute('data-id'); 
+                const wrong = wrongQuestions.find(w=>w.id===id); 
+                if(wrong) openPracticeModal(wrong); 
+            }); 
+        }); 
+    }
+    function openPracticeModal(wrongItem) { 
+        const q = wrongItem.question; 
+        const modalDiv = document.createElement('div'); modalDiv.className = 'level-card-modal'; 
+        let optsHtml = ''; 
+        q.options.forEach((opt,i)=>{ optsHtml += `<button class="practice-opt-btn" data-opt="${i}" style="display:block; width:100%; margin:8px 0; padding:12px; background:#fffef7; border:1px solid #cfa56a; border-radius:40px;">${opt}</button>`; }); 
+        modalDiv.innerHTML = `<div class="level-card-content"><h3>📌 错题重温 · ${wrongItem.levelName}</h3><p>${q.q}</p><div id="practiceOpts">${optsHtml}</div><div id="pracFeedback" style="margin-top:16px;"></div><button class="card-skip-btn">关闭</button></div>`; 
+        document.body.appendChild(modalDiv); 
+        const close = () => modalDiv.remove(); 
+        modalDiv.querySelector('.card-skip-btn').onclick = close; 
+        let answered = false; 
+        modalDiv.querySelectorAll('.practice-opt-btn').forEach(btn => { 
+            btn.addEventListener('click', () => { 
+                if(answered) return; 
+                const selected = parseInt(btn.dataset.opt); 
+                const fbDiv = modalDiv.querySelector('#pracFeedback'); 
+                if(selected === q.answer) { 
+                    fbDiv.innerHTML = '<span style="color:#2f7d2f;">✅ 答对了！错题仍保留在错题本，继续巩固。</span>'; 
+                    // 累积模式：不移除错题，也不刷新列表
+                    answered=true; 
+                    setTimeout(close,1500); 
+                } else { 
+                    fbDiv.innerHTML = '<span style="color:#c55738;">❌ 再想想，仍未正确，继续巩固！</span>'; 
+                } 
+            }); 
+        }); 
+        modalDiv.addEventListener('click', (e) => { if(e.target === modalDiv) close(); }); 
+    }
+    function showWrongNotePanel() { 
+        if(currentWrongPanel) { currentWrongPanel.remove(); currentWrongPanel = null; return; } 
+        const panel = document.createElement('div'); panel.className = 'wrongnote-panel'; 
+        panel.innerHTML = `<div class="wrongnote-header"><span>📚 错题本 · 翰林纠错录（累积）</span><button class="close-wrongnote">✖</button></div><div class="wrongnote-list"></div>`; 
+        document.body.appendChild(panel); currentWrongPanel = panel; 
+        buildWrongPanelContent(panel.querySelector('.wrongnote-list')); 
+        panel.querySelector('.close-wrongnote').onclick = () => { panel.remove(); currentWrongPanel = null; }; 
+    }
+    document.getElementById('wrongNoteBtn').onclick = showWrongNotePanel;
+    loadWrongStorage();
+    
+    // 游戏引擎（完整，且已移除答对时删除错题的逻辑）
+    const gameEngine = { currentDynasty: 'sui', levelsData: [], progress: { level: 0, question: 0 }, correctForCurrent: false, waitingForPromotionModal: false, needCardForLevel: true,
+        init(dyn) { this.currentDynasty = dyn; this.buildLevels(); this.progress = { level: 0, question: 0 }; this.correctForCurrent = false; this.waitingForPromotionModal = false; this.needCardForLevel = true; this.updateExaminerInfo(); document.querySelector('.exam-paper').style.display = 'block'; document.getElementById('victory-screen').style.display = 'none'; this.startLevelWithCard(); },
+        buildLevels() { const base = JSON.parse(JSON.stringify(ORIGINAL_DATA[this.currentDynasty])); const customs = customQuestions.filter(c => c.dynasty === this.currentDynasty); customs.forEach(cust => { let targetLvl = base.find(l => l.levelName === cust.levelName); if(targetLvl) targetLvl.questions.push(cust.question); else base.push({ levelName: cust.levelName, questions: [cust.question] }); }); this.levelsData = base; },
+        updateExaminerInfo() { const img = document.getElementById('examiner-img'); img.src = EXAMINER_IMAGES[this.currentDynasty]; document.getElementById('examinerName').innerText = { sui:"杨素", tang:"韩愈", song:"欧阳修", ming:"张居正", qing:"曾国藩", yuan:"脱脱" }[this.currentDynasty]; document.getElementById('examinerTalk').innerText = "请诸位士子静心答题。"; },
+        showLevelCard(levelIdx, callback) { if(!this.needCardForLevel) { callback(); return; } const level = this.levelsData[levelIdx]; if(!level) { callback(); return; } const modal = document.createElement('div'); modal.className = 'level-card-modal'; modal.innerHTML = `<div class="level-card-content"><h3>📜 科举制度卡片</h3><p>${getCardContent(level.levelName)}</p><button class="card-skip-btn">📖 开始答题</button></div>`; document.body.appendChild(modal); modal.querySelector('.card-skip-btn').onclick = () => { modal.remove(); this.needCardForLevel = false; callback(); }; },
+        startLevelWithCard() { if(this.progress.level >= this.levelsData.length) { this.showVictory(); return; } this.showLevelCard(this.progress.level, () => { this.render(); }); },
+        render() { this.correctForCurrent = false; const lvl = this.levelsData[this.progress.level]; const q = lvl.questions[this.progress.question]; document.getElementById('level-name').innerText = lvl.levelName; document.getElementById('question-count').innerText = `第 ${this.progress.question + 1} / ${lvl.questions.length} 题`; document.getElementById('question-text').innerHTML = q.q; const container = document.getElementById('options-container'); container.innerHTML = ''; q.options.forEach((opt, idx) => { const btn = document.createElement('button'); btn.className = 'option-btn'; btn.innerText = opt; btn.onclick = () => this.checkAnswer(idx); container.appendChild(btn); }); document.getElementById('feedback').style.display = 'none'; document.getElementById('next-btn').style.display = 'none'; this.updateProgressBar(); },
+        checkAnswer(idx) { if (this.correctForCurrent) return; const lvl = this.levelsData[this.progress.level]; const q = lvl.questions[this.progress.question]; const fb = document.getElementById('feedback'); fb.style.display = 'block'; if (idx === q.answer) { this.correctForCurrent = true; fb.className = 'correct-box'; document.getElementById('feedback-msg').innerHTML = "✅ 朱批：切中肯綮！"; document.getElementById('tip-text').innerHTML = q.tip; document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true); document.getElementById('next-btn').style.display = 'inline-block'; 
+            // 累积模式：答对时不从错题本移除，因此这里什么也不做。
+        } else { fb.className = 'wrong-box'; document.getElementById('feedback-msg').innerHTML = "❌ 朱批：辞不达意！"; document.getElementById('tip-text').innerHTML = q.tip + "（请仔细研读史料）"; addWrongQuestion(this.currentDynasty, lvl.levelName, q); } },
+        handleNext() { if (!this.correctForCurrent) return; const currentLevelObj = this.levelsData[this.progress.level]; const isLastQuestion = (this.progress.question + 1 === currentLevelObj.questions.length); if (isLastQuestion) { const rank = getRankFromLevel(currentLevelObj.levelName); const nextLevelIdx = this.progress.level + 1; this.waitingForPromotionModal = true; const modalDiv = document.createElement('div'); modalDiv.className = 'promotion-card-modal'; modalDiv.innerHTML = `<div class="promotion-card-content"><h2>🎉 寒窗苦读 · 终有所成 🎉</h2><div class="promotion-text">📌 通过了「${currentLevelObj.levelName}」</div><div class="promotion-detail">✨ 取得了 <span>「${rank}」</span> 功名 ✨<br>🏆 翰林院已备案，望再接再厉，更登甲第 🏅</div><button class="promotion-confirm">📖 继续下一关</button></div>`; document.body.appendChild(modalDiv); modalDiv.querySelector('.promotion-confirm').onclick = () => { modalDiv.remove(); this.waitingForPromotionModal = false; if (nextLevelIdx >= this.levelsData.length) this.showVictory(); else { this.progress = { level: nextLevelIdx, question: 0 }; this.needCardForLevel = true; this.startLevelWithCard(); } }; return; } this.progress.question++; this.needCardForLevel = false; this.render(); },
+        updateProgressBar() { let total=0,cur=0; this.levelsData.forEach((l,i)=>{ total+=l.questions.length; if(i<this.progress.level) cur+=l.questions.length; else if(i===this.progress.level) cur+=this.progress.question; }); document.getElementById('progress-bar').style.width = (cur/total*100)+"%"; },
+        showVictory() { document.querySelector('.exam-paper').style.display='none'; document.getElementById('victory-screen').style.display='block'; document.getElementById('victory-title').innerHTML = { sui:"🏅 大隋开科取士 · 进士及第 🏅", tang:"🏅 大唐进士及第 · 雁塔题名 🏅", song:"🏅 大宋琼林宴客 · 九题魁星 🏅", ming:"🏅 大明状元归乡 · 八题全通 🏅", qing:"🏆 大清末代金榜 · 八道真题全通 🏆", yuan:"🐎 大元延祐金榜 · 九题策论通 🐎"}[this.currentDynasty]; document.getElementById('victory-desc').innerText = "真题尽通，金榜题名，翰林荣光。"; },
+        restartDynasty() { if(this.waitingForPromotionModal) return; this.init(this.currentDynasty); }
+    };
+    window.gameEngine = gameEngine;
+    function getDynastyIntroData(dynasty) { const map = { sui: { title: "🪭 大隋科举 · 开创先河 🪭", features: "隋朝废除九品中正制，以分科考试选拔人才。隋文帝设“志行修谨”“清平干济”二科，隋炀帝创进士科，科举制正式诞生。此举打破门阀垄断，为天下寒士开辟入仕通道。（注：隋朝科举仍属初创阶段，保留了大量过渡时期的特征，考试由吏部主持，但中央统一命题、统一考试的规范尚未建立。）", stages: "五道真题 · 直击科举开创期制度", terms: ["分科举人","进士科","科举制开创"] }, tang: { title: "🏮 大唐科举 · 诗赋取士 🏮", features: "唐代科举以“诗赋取士”为核心，进士科最受尊崇。行卷之风盛行，武则天时期开创殿试。", stages: "解试（州府）→ 省试（尚书省礼部）→ 殿试", terms: ["诗赋取士","行卷","解试","省试","殿试"] }, song: { title: "🫖 大宋科举 · 文德治世 🫖", features: "宋代完善糊名、誊录制度，极大保障公平性。取士不问家世，文官政治达巅峰。", stages: "解试 → 省试 → 殿试", terms: ["糊名法","誊录制","崇文抑武","取士不问家世"] }, ming: { title: "📜 大明科举 · 八股取士 · 鼎盛定制 📜", features: "明代科举最为鼎盛，确立“八股文”为固定格式，形成四级完备体系。", stages: "童试（秀才）→ 乡试（举人）→ 会试（贡士）→ 殿试（进士）", terms: ["八股文","南北卷","庶吉士","童试","乡试","会试","殿试","三甲传胪"] }, qing: { title: "🖋️ 大清科举 · 终结与变革 🖋️", features: "清代沿袭明制，增设翻译科等制科。科举僵化与西学冲击下1905年废止。", stages: "院试 → 乡试 → 会试 → 殿试", terms: ["八股文","翻译科","博学鸿词科","八旗科举"] }, yuan: { title: "🐎 大元科举 · 延祐复科 · 左右榜 🐎", features: "元仁宗延祐元年恢复科举，分左右榜录取，保留了中原取士传统。", stages: "乡试 → 会试 → 殿试", terms: ["延祐复科","左右榜","四等人制","停科举"] } }; return map[dynasty]; }
+    function startDynastyWithIntro(dynasty) { document.getElementById('dynastySelectScreen').style.display = 'none'; const afterIntro = () => { document.getElementById('gameMainScreen').style.display = 'block'; gameEngine.init(dynasty); }; const intro = getDynastyIntroData(dynasty); const termBadgesHtml = intro.terms.map(term => `<span class="term-badge" data-term="${term}">${term}</span>`).join(''); const introHTML = `<div class="intro-screen" id="dynastyIntro"><div class="intro-card"><button class="close-intro">✖</button><h2>${intro.title}</h2><div class="intro-section"><h3>📌 科举特点</h3><p>${intro.features}</p></div><div class="intro-section"><h3>🎯 科举阶段</h3><p>${intro.stages}</p></div><div class="intro-section"><h3>📖 核心名词解释</h3><div class="term-list">${termBadgesHtml}</div><p>💡 点击词条查看详细解释。</p></div><button class="start-exam-btn">📖 进入考场 · 真题实战 📖</button></div></div>`; document.body.insertAdjacentHTML('beforeend', introHTML); const introDiv = document.getElementById('dynastyIntro'); introDiv.querySelector('.close-intro').onclick = () => { introDiv.remove(); afterIntro(); }; introDiv.querySelector('.start-exam-btn').onclick = () => { introDiv.remove(); afterIntro(); }; introDiv.querySelectorAll('.term-badge').forEach(b => { b.addEventListener('click', (e) => { e.stopPropagation(); const term = b.dataset.term; const desc = KEJU_TERMS[term] || '暂无详细解释'; showTermCard(term, desc); }); }); introDiv.addEventListener('click', (e) => { if (e.target === introDiv) { introDiv.remove(); afterIntro(); } }); }
+    function backToMenu() { document.getElementById('gameMainScreen').style.display='none'; document.getElementById('dynastySelectScreen').style.display='block'; }
+    document.getElementById('chooseSui').onclick = () => startDynastyWithIntro('sui');
+    document.getElementById('chooseTang').onclick = () => startDynastyWithIntro('tang');
+    document.getElementById('chooseSong').onclick = () => startDynastyWithIntro('song');
+    document.getElementById('chooseYuan').onclick = () => startDynastyWithIntro('yuan');
+    document.getElementById('chooseMing').onclick = () => startDynastyWithIntro('ming');
+    document.getElementById('chooseQing').onclick = () => startDynastyWithIntro('qing');
+    document.getElementById('addCustomBtn').onclick = () => { const dyn=document.getElementById('customDynasty').value; const qText=document.getElementById('customQuestion').value; if(!qText) return alert("请输入题目！"); const newQ={ dynasty:dyn, levelName:document.getElementById('customLevel').value, question:{ q:qText, options:["A. "+document.getElementById('opt0').value,"B. "+document.getElementById('opt1').value,"C. "+document.getElementById('opt2').value,"D. "+document.getElementById('opt3').value], answer:parseInt(document.getElementById('customAnswer').value), tip:"师者自命题，结合书本复习。" } }; customQuestions.push(newQ); renderCustomList(); alert("题目已存入，重新进入该朝代即可体验！"); };
+    function renderCustomList() { const panel=document.getElementById('customListPanel'); const zh={sui:'隋', tang:'唐', song:'宋', ming:'明', qing:'清', yuan:'元'}; panel.innerHTML=customQuestions.map((q,i)=>`<div class="custom-item">[${zh[q.dynasty]}] ${q.question.q.substring(0,12)}...<button class="del-custom" onclick="customQuestions.splice(${i},1);renderCustomList();">✖</button></div>`).join(''); }
+    document.getElementById('openEncyclopediaBtn').onclick = () => { const modalDiv = document.createElement('div'); modalDiv.className = 'level-card-modal'; let termsHtml = '<div class="level-card-content"><h3>📖 科举名词百科辞典</h3><div style="max-height:60vh; overflow-y:auto;">'; for(let [term, desc] of Object.entries(KEJU_TERMS)) termsHtml += `<div style="margin-bottom:12px;"><strong style="color:#b7512a;">${term}</strong>：${desc}</div>`; termsHtml += '</div><button class="card-skip-btn">关闭</button></div>'; modalDiv.innerHTML = termsHtml; document.body.appendChild(modalDiv); modalDiv.querySelector('.card-skip-btn').onclick = () => modalDiv.remove(); };
+    renderCustomList();
+    window.addEventListener('load', () => { const welcomeDiv = document.createElement('div'); welcomeDiv.className = 'welcome-modal'; welcomeDiv.innerHTML = `<div class="welcome-card"><h1>📜 科举之路 · 金榜题名 📜</h1><p>请选择一个朝代，开启金榜题名之旅！</p><div class="dynasty-selector"><button class="dynasty-choice-btn" data-dynasty="sui">🪭 大隋</button><button class="dynasty-choice-btn" data-dynasty="tang">🏮 大唐</button><button class="dynasty-choice-btn" data-dynasty="song">🫖 大宋</button><button class="dynasty-choice-btn" data-dynasty="yuan">🐎 大元</button><button class="dynasty-choice-btn" data-dynasty="ming">📜 大明</button><button class="dynasty-choice-btn" data-dynasty="qing">🖋️ 大清</button></div></div>`; document.body.appendChild(welcomeDiv); welcomeDiv.querySelectorAll('.dynasty-choice-btn').forEach(btn => btn.addEventListener('click', (e) => { const dynasty = btn.getAttribute('data-dynasty'); welcomeDiv.remove(); startDynastyWithIntro(dynasty); })); });
+</script>
+</body>
+<!-- ==================== AI 翰林问答助手 ==================== -->
+<style>
+  #aiAssistant {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 360px;
+    max-width: calc(100vw - 40px);
+    background: #fffef5;
+    border-radius: 28px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    border: 1px solid #e2bc7c;
+    font-family: 'STKaiti', '华文楷书', serif;
+    display: none;
+    flex-direction: column;
+    z-index: 10000;
+    backdrop-filter: blur(2px);
+  }
+  .ai-header {
+    background: #b7512a;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 28px 28px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+  }
+  .ai-header button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+  .chat-messages {
+    padding: 12px;
+    overflow-y: auto;
+    flex: 1;
+    max-height: 400px;
+    min-height: 300px;
+    background: #fef8ec;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .user-msg {
+    background: #b7512a;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px 20px 8px 20px;
+    align-self: flex-end;
+    max-width: 85%;
+  }
+  .bot-msg {
+    background: #e9dfc7;
+    color: #3a2a1a;
+    padding: 8px 12px;
+    border-radius: 20px 20px 20px 8px;
+    align-self: flex-start;
+    max-width: 85%;
+  }
+  .chat-input-area {
+    padding: 12px;
+    border-top: 1px solid #e2bc7c;
+    display: flex;
+    gap: 8px;
+    background: #fffcf0;
+    border-radius: 0 0 28px 28px;
+  }
+  .chat-input-area input {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 40px;
+    border: 1px solid #dbb874;
+    background: white;
+    font-family: inherit;
+  }
+  .chat-input-area button {
+    background: #b7512a;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 40px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  #openAiBtn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #b7512a;
+    color: white;
+    border: none;
+    border-radius: 40px;
+    padding: 10px 18px;
+    font-family: inherit;
+    cursor: pointer;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    font-weight: bold;
+  }
+  @media (max-width: 600px) {
+    #aiAssistant { width: 300px; right: 10px; bottom: 10px; }
+    #openAiBtn { bottom: 10px; right: 10px; padding: 8px 14px; font-size: 0.8rem; }
+  }
+</style>
+
+<div id="aiAssistant">
+  <div class="ai-header">
+    <span>📜 翰林院AI学士</span>
+    <button id="closeAiBtn">✖</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="bot-msg">士子请坐，本官在此。你可提问科举、历史、文献等，我会尽力解答。</div>
+  </div>
+  <div class="chat-input-area">
+    <input type="text" id="chatInput" placeholder="输入你的问题...">
+    <button id="sendChatBtn">发送</button>
+  </div>
+</div>
+<button id="openAiBtn">🤖 AI翰林问答</button>
+
+<script>
+  // 后端代理地址（如果你按“合并部署”方式，保持为 '/api/chat'）
+  // 如果分开部署，则改成你的代理完整URL，例如 https://你的项目.vercel.app/api/chat
+  const API_PROXY_URL = '/api/chat';
+
+  const aiPanel = document.getElementById('aiAssistant');
+  const openBtn = document.getElementById('openAiBtn');
+  const closeBtn = document.getElementById('closeAiBtn');
+  const chatMessages = document.getElementById('chatMessages');
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendChatBtn');
+
+  openBtn.onclick = () => { aiPanel.style.display = 'flex'; openBtn.style.display = 'none'; };
+  closeBtn.onclick = () => { aiPanel.style.display = 'none'; openBtn.style.display = 'block'; };
+
+  function addMessage(text, isUser) {
+    const div = document.createElement('div');
+    div.className = isUser ? 'user-msg' : 'bot-msg';
+    div.innerText = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return div;
+  }
+
+  async function sendMessage() {
+    const userMsg = chatInput.value.trim();
+    if (!userMsg) return;
+    addMessage(userMsg, true);
+    chatInput.value = '';
+    const loadingMsg = addMessage('📖 翰林翻阅典籍中...', false);
+    try {
+      const response = await fetch(API_PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [{ role: 'user', content: userMsg }] })
+      });
+      const data = await response.json();
+      let reply = '翰林未能理解，请换一种问法。';
+      if (data.choices && data.choices[0] && data.choices[0].message) {
+        reply = data.choices[0].message.content;
+      } else if (data.error) {
+        reply = `翰林出错：${data.error.message}`;
+      }
+      loadingMsg.remove();
+      addMessage(reply, false);
+    } catch (err) {
+      loadingMsg.innerText = '⚠️ 网络不通，请检查代理服务是否正常运行。';
+    }
+  }
+
+  sendBtn.onclick = sendMessage;
+  chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+</script>
+</html>
